@@ -6,9 +6,9 @@
 ;--------------------------------
 ;Variables
 
-  !define PRODUCT_NAME "Electrum"
-  !define PRODUCT_WEB_SITE "https://github.com/spesmilo/electrum"
-  !define PRODUCT_PUBLISHER "Electrum Technologies GmbH"
+  !define PRODUCT_NAME "ElectrumParkByte"
+  !define PRODUCT_WEB_SITE "https://github.com/parkbyte/electrum-parkbyte"
+  !define PRODUCT_PUBLISHER "ParkByte Limited"
   !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 
 ;--------------------------------
@@ -130,7 +130,7 @@ Section
   WriteRegStr HKCU "Software\Classes\parkbyte" "URL Protocol" ""
   WriteRegStr HKCU "Software\Classes\parkbyte" "DefaultIcon" "$\"$INSTDIR\electrum.ico, 0$\""
   WriteRegStr HKCU "Software\Classes\parkbyte\shell\open\command" "" "$\"$INSTDIR\electrum.exe$\" $\"%1$\""
-
+  
   ;Adds an uninstaller possibilty to Windows Uninstall or change a program section
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
   WriteRegStr HKCU "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\Uninstall.exe"
