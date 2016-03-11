@@ -1564,7 +1564,7 @@ class BIP32_Wallet(Deterministic_Wallet):
         return not bool(self.master_private_keys)
 
     def can_import(self):
-        return False
+        return True
 
     def get_master_public_key(self):
         return self.master_public_keys.get(self.root_name)
