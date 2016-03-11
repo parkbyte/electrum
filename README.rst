@@ -1,19 +1,22 @@
-Electrum - Lightweight ParkByte client
+Electrum ParkByte - Lightweight ParkByte client
 =====================================
 
-::
-
-  Licence: MIT Licence
-  Author: Thomas Voegtlin
-  Language: Python
-  Homepage: https://electrum.org/
 
 
-.. image:: https://travis-ci.org/spesmilo/electrum.svg?branch=master
-    :target: https://travis-ci.org/spesmilo/electrum
-    :alt: Build Status
+On first launch Electrum ParkByte will be unable to connect the electrum servers until it has downloaded the blockchain headers (Currently 42MB).
+
+Currently, none of the servers have SSL enabled, please uncheck "Use SSL" in Tools > Network until this has been enabled.
+
+ParkByte is a Proof-Of-Stake Coin, currently Electrum ParkByte is unable to spend staked coins.
 
 
+
+Prebuilt Windows Executables
+===============
+
+    Portable Windows executable: https://www.parkbyte.com/electrum-PKB2.6.2.1-portable.zip
+
+    Windows Installer: https://www.parkbyte.com/electrum-PKB2.6.2.1-setup.zip
 
 
 
@@ -43,7 +46,7 @@ Development version
 
 Check out the code from Github::
 
-    git clone git://github.com/spesmilo/electrum.git
+    git clone git://github.com/parkbyte/electrum-parkbyte.git
     cd electrum
 
 Compile the icons file for Qt::
@@ -69,15 +72,6 @@ Install on Linux systems
 If you install Electrum on your system, you can run it from any
 directory.
 
-If you have pip, you can do::
-
-    python setup.py sdist
-    sudo pip install --pre dist/Electrum-2.0.tar.gz
-
-
-If you don't have pip, install with::
-
-    python setup.py sdist
     sudo python setup.py install
 
 
