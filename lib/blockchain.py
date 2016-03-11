@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2012 thomasv@ecdsa.org
 #
 # Permission is hereby granted, free of charge, to any person
@@ -27,7 +27,7 @@
 
 import os
 import util
-from bitcoin import *
+from parkbyte import *
 
 MAX_TARGET = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
 
@@ -36,7 +36,7 @@ class Blockchain(util.PrintError):
     def __init__(self, config, network):
         self.config = config
         self.network = network
-        self.headers_url = "https://headers.electrum.org/blockchain_headers"
+        self.headers_url = "https://www.parkbyte.com/encompass/pkb/blockchain_headers"
         self.local_height = 0
         self.set_local_height()
 
@@ -60,21 +60,40 @@ class Blockchain(util.PrintError):
         prev_header = self.read_header(first_header.get('block_height') - 1)
         for header in chain:
             height = header.get('block_height')
-            bits, target = self.get_target(height / 2016, chain)
-            self.verify_header(header, prev_header, bits, target)
+            prev_hash = self.hash_header(prev_header)
+            _hash = self.hash_header(header)
+            assert prev_hash == header.get('prev_block_hash')
             prev_header = header
+
+    def header_from_string(self, s):
+        """Create a header dict from a serialized string."""
+        hex_to_int = lambda s: int('0x' + s[::-1].encode('hex'), 16)
+        h = {}
+        h['version'] = hex_to_int(s[0:4])
+        h['prev_block_hash'] = hash_encode(s[4:36])
+        h['merkle_root'] = hash_encode(s[36:68])
+        h['timestamp'] = hex_to_int(s[68:72])
+        h['bits'] = hex_to_int(s[72:76])
+        h['nonce'] = hex_to_int(s[76:80])
+        return h
 
     def verify_chunk(self, index, data):
         num = len(data) / 80
         prev_header = None
-        if index != 0:
+        if index == 0:
+            previous_hash = ("0"*64)
+        else:
             prev_header = self.read_header(index*2016 - 1)
-        bits, target = self.get_target(index)
+            if prev_header is None: raise
+            previous_hash = self.hash_header(prev_header)
         for i in range(num):
-            raw_header = data[i*80:(i+1) * 80]
-            header = self.deserialize_header(raw_header)
-            self.verify_header(header, prev_header, bits, target)
-            prev_header = header
+            height = index*2016 + i
+            raw_header = data[i*80:(i+1)*80]
+            header = self.header_from_string(raw_header)
+            _hash = self.hash_header(header)
+            assert previous_hash == header.get('prev_block_hash')
+            previous_header = header
+            previous_hash = _hash
 
     def serialize_header(self, res):
         s = int_to_hex(res.get('version'), 4) \
@@ -156,38 +175,49 @@ class Blockchain(util.PrintError):
                 return h
 
     def get_target(self, index, chain=None):
-        if index == 0:
-            return 0x1d00ffff, MAX_TARGET
-        first = self.read_header((index-1) * 2016)
-        last = self.read_header(index*2016 - 1)
+        if chain is None:
+            chain = []  # Do not use mutables as default values!
+
+        max_target = 0x00000000FFFF0000000000000000000000000000000000000000000000000000
+        if index == 0: return 0x1d00ffff, max_target
+
+        first = self.read_header((index-1)*2016)
+        last = self.read_header(index*2016-1)
         if last is None:
             for h in chain:
-                if h.get('block_height') == index*2016 - 1:
+                if h.get('block_height') == index*2016-1:
                     last = h
-        assert last is not None
-        # bits to target
-        bits = last.get('bits')
-        bitsN = (bits >> 24) & 0xff
-        assert bitsN >= 0x03 and bitsN <= 0x1d, "First part of bits should be in [0x03, 0x1d]"
-        bitsBase = bits & 0xffffff
-        assert bitsBase >= 0x8000 and bitsBase <= 0x7fffff, "Second part of bits should be in [0x8000, 0x7fffff]"
-        target = bitsBase << (8 * (bitsN-3))
-        # new target
+
         nActualTimespan = last.get('timestamp') - first.get('timestamp')
-        nTargetTimespan = 14 * 24 * 60 * 60
-        nActualTimespan = max(nActualTimespan, nTargetTimespan / 4)
-        nActualTimespan = min(nActualTimespan, nTargetTimespan * 4)
-        new_target = min(MAX_TARGET, (target*nActualTimespan) / nTargetTimespan)
-        # convert new target to bits
-        c = ("%064x" % new_target)[2:]
-        while c[:2] == '00' and len(c) > 6:
+        nTargetTimespan = 14*24*60*60
+        nActualTimespan = max(nActualTimespan, nTargetTimespan/4)
+        nActualTimespan = min(nActualTimespan, nTargetTimespan*4)
+
+        bits = last.get('bits')
+        # convert to bignum
+        MM = 256*256*256
+        a = bits%MM
+        if a < 0x8000:
+            a *= 256
+        target = (a) * pow(2, 8 * (bits/MM - 3))
+
+        # new target
+        new_target = min( max_target, (target * nActualTimespan)/nTargetTimespan )
+
+        # convert it to bits
+        c = ("%064X"%new_target)[2:]
+        i = 31
+        while c[0:2]=="00":
             c = c[2:]
-        bitsN, bitsBase = len(c) / 2, int('0x' + c[:6], 16)
-        if bitsBase >= 0x800000:
-            bitsN += 1
-            bitsBase >>= 8
-        new_bits = bitsN << 24 | bitsBase
-        return new_bits, bitsBase << (8 * (bitsN-3))
+            i -= 1
+
+        c = int('0x'+c[0:6],16)
+        if c >= 0x800000:
+            c /= 256
+            i += 1
+
+        new_bits = c + MM * i
+        return new_bits, new_target
 
     def connect_header(self, chain, header):
         '''Builds a header chain until it connects.  Returns True if it has
@@ -196,7 +226,6 @@ class Blockchain(util.PrintError):
         chain.append(header)  # Ordered by decreasing height
         previous_height = header['block_height'] - 1
         previous_header = self.read_header(previous_height)
-
         # Missing header, request it
         if not previous_header:
             return previous_height

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2011 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -35,7 +35,7 @@ import urllib
 import threading
 from i18n import _
 
-base_units = {'BTC':8, 'mBTC':5, 'uBTC':2}
+base_units = {'PKB':8, 'mPKB':5, 'uPKB':2}
 
 def normalize_version(v):
     return [int(x) for x in re.sub(r'(\.0+)*$','', v).split(".")]
@@ -237,11 +237,11 @@ def get_headers_path(config):
 
 def user_dir():
     if "HOME" in os.environ:
-        return os.path.join(os.environ["HOME"], ".electrum")
+        return os.path.join(os.environ["HOME"], ".electrum-parkbyte")
     elif "APPDATA" in os.environ:
-        return os.path.join(os.environ["APPDATA"], "Electrum")
+        return os.path.join(os.environ["APPDATA"], "Electrum-ParkByte")
     elif "LOCALAPPDATA" in os.environ:
-        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum")
+        return os.path.join(os.environ["LOCALAPPDATA"], "Electrum-ParkByte")
     elif 'ANDROID_DATA' in os.environ:
         return android_check_data_dir()
     else:
@@ -341,30 +341,13 @@ def time_difference(distance_in_time, include_seconds):
         return "over %d years" % (round(distance_in_minutes / 525600))
 
 block_explorer_info = {
-    'Biteasy.com': ('https://www.biteasy.com/blockchain',
-                        {'tx': 'transactions', 'addr': 'addresses'}),
-    'Bitflyer.jp': ('https://chainflyer.bitflyer.jp',
-                        {'tx': 'Transaction', 'addr': 'Address'}),
-    'Blockchain.info': ('https://blockchain.info',
-                        {'tx': 'tx', 'addr': 'address'}),
-    'blockchainbdgpzk.onion': ('https://blockchainbdgpzk.onion',
-                        {'tx': 'tx', 'addr': 'address'}),
-    'Blockr.io': ('https://btc.blockr.io',
-                        {'tx': 'tx/info', 'addr': 'address/info'}),
-    'Blocktrail.com': ('https://www.blocktrail.com/BTC',
-                        {'tx': 'tx', 'addr': 'address'}),
-    'BTC.com': ('https://chain.btc.com',
-                        {'tx': 'tx', 'addr': 'address'}),
-    'Chain.so': ('https://www.chain.so',
-                        {'tx': 'tx/BTC', 'addr': 'address/BTC'}),
-    'Insight.is': ('https://insight.bitpay.com',
-                        {'tx': 'tx', 'addr': 'address'}),
-    'TradeBlock.com': ('https://tradeblock.com/blockchain',
-                        {'tx': 'tx', 'addr': 'address'}),
+    'CryptoID.info': ('https://chainz.cryptoid.info/pkb/',
+                        {'tx': 'tx.dws?', 'addr': 'address.dws?'})
+   
 }
 
 def block_explorer(config):
-    return config.get('block_explorer', 'Blockchain.info')
+    return config.get('block_explorer', 'CryptoID.info')
 
 def block_explorer_tuple(config):
     return block_explorer_info.get(block_explorer(config))
@@ -377,24 +360,24 @@ def block_explorer_URL(config, kind, item):
     if not kind_str:
         return
     url_parts = [be_tuple[0], kind_str, item]
-    return "/".join(url_parts)
+    return "".join(url_parts)
 
 # URL decode
 #_ud = re.compile('%([0-9a-hA-H]{2})', re.MULTILINE)
 #urldecode = lambda x: _ud.sub(lambda m: chr(int(m.group(1), 16)), x)
 
 def parse_URI(uri, on_pr=None):
-    import bitcoin
-    from bitcoin import COIN
+    import parkbyte
+    from parkbyte import COIN
 
     if ':' not in uri:
-        if not bitcoin.is_address(uri):
-            raise BaseException("Not a bitcoin address")
+        if not parkbyte.is_address(uri):
+            raise BaseException("Not a parkbyte address")
         return {'address': uri}
 
     u = urlparse.urlparse(uri)
-    if u.scheme != 'bitcoin':
-        raise BaseException("Not a bitcoin URI")
+    if u.scheme != 'parkbyte':
+        raise BaseException("Not a parkbyte URI")
     address = u.path
 
     # python for android fails to parse query
@@ -410,8 +393,8 @@ def parse_URI(uri, on_pr=None):
 
     out = {k: v[0] for k, v in pq.items()}
     if address:
-        if not bitcoin.is_address(address):
-            raise BaseException("Invalid bitcoin address:" + address)
+        if not parkbyte.is_address(address):
+            raise BaseException("Invalid parkbyte address:" + address)
         out['address'] = address
     if 'amount' in out:
         am = out['amount']
@@ -430,7 +413,7 @@ def parse_URI(uri, on_pr=None):
     if 'exp' in out:
         out['exp'] = int(out['exp'])
     if 'sig' in out:
-        out['sig'] = bitcoin.base_decode(out['sig'], None, base=58).encode('hex')
+        out['sig'] = parkbyte.base_decode(out['sig'], None, base=58).encode('hex')
 
     r = out.get('r')
     sig = out.get('sig')
@@ -452,8 +435,8 @@ def parse_URI(uri, on_pr=None):
 
 
 def create_URI(addr, amount, message):
-    import bitcoin
-    if not bitcoin.is_address(addr):
+    import parkbyte
+    if not parkbyte.is_address(addr):
         return ""
     query = []
     if amount:
@@ -462,7 +445,7 @@ def create_URI(addr, amount, message):
         if type(message) == unicode:
             message = message.encode('utf8')
         query.append('message=%s'%urllib.quote(message))
-    p = urlparse.ParseResult(scheme='bitcoin', netloc='', path=addr, params='', query='&'.join(query), fragment='')
+    p = urlparse.ParseResult(scheme='parkbyte', netloc='', path=addr, params='', query='&'.join(query), fragment='')
     return urlparse.urlunparse(p)
 
 

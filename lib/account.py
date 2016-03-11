@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2013 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -23,8 +23,8 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import bitcoin
-from bitcoin import *
+import parkbyte
+from parkbyte import *
 from i18n import _
 from transaction import Transaction, is_extended_pubkey
 from util import print_msg, InvalidPassword
@@ -233,7 +233,7 @@ class OldAccount(Account):
         return _('Old Electrum format')
 
     def get_xpubkeys(self, for_change, n):
-        s = ''.join(map(lambda x: bitcoin.int_to_hex(x,2), (for_change, n)))
+        s = ''.join(map(lambda x: parkbyte.int_to_hex(x,2), (for_change, n)))
         mpk = self.mpk.encode('hex')
         x_pubkey = 'fe' + mpk + s
         return [ x_pubkey ]
@@ -246,7 +246,7 @@ class OldAccount(Account):
         dd = pk[128:]
         s = []
         while dd:
-            n = int(bitcoin.rev_hex(dd[0:4]), 16)
+            n = int(parkbyte.rev_hex(dd[0:4]), 16)
             dd = dd[4:]
             s.append(n)
         assert len(s) == 2
@@ -319,20 +319,20 @@ class BIP32_Account(Account):
 
     def get_xpubkeys(self, for_change, n):
         # unsorted
-        s = ''.join(map(lambda x: bitcoin.int_to_hex(x,2), (for_change,n)))
+        s = ''.join(map(lambda x: parkbyte.int_to_hex(x,2), (for_change,n)))
         xpubs = self.get_master_pubkeys()
-        return map(lambda xpub: 'ff' + bitcoin.DecodeBase58Check(xpub).encode('hex') + s, xpubs)
+        return map(lambda xpub: 'ff' + parkbyte.DecodeBase58Check(xpub).encode('hex') + s, xpubs)
 
     @classmethod
     def parse_xpubkey(self, pubkey):
         assert is_extended_pubkey(pubkey)
         pk = pubkey.decode('hex')
         pk = pk[1:]
-        xkey = bitcoin.EncodeBase58Check(pk[0:78])
+        xkey = parkbyte.EncodeBase58Check(pk[0:78])
         dd = pk[78:]
         s = []
         while dd:
-            n = int( bitcoin.rev_hex(dd[0:2].encode('hex')), 16)
+            n = int( parkbyte.rev_hex(dd[0:2].encode('hex')), 16)
             dd = dd[2:]
             s.append(n)
         assert len(s) == 2
@@ -369,7 +369,7 @@ class Multisig_Account(BIP32_Account):
 
     def pubkeys_to_address(self, pubkeys):
         redeem_script = Transaction.multisig_script(sorted(pubkeys), self.m)
-        address = hash_160_to_bc_address(hash_160(redeem_script.decode('hex')), 5)
+        address = hash_160_to_bc_address(hash_160(redeem_script.decode('hex')), 28)
         return address
 
     def get_address(self, for_change, n):

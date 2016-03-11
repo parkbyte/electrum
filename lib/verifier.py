@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - Lightweight Bitcoin Client
+# Electrum - Lightweight ParkByte Client
 # Copyright (c) 2012 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -25,7 +25,7 @@
 
 
 from util import ThreadJob
-from bitcoin import *
+from parkbyte import *
 
 
 class SPV(ThreadJob):

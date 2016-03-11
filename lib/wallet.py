@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -40,13 +40,13 @@ from collections import namedtuple
 from i18n import _
 from util import NotEnoughFunds, PrintError, profiler
 
-from bitcoin import *
+from parkbyte import *
 from account import *
 from version import *
 
 from transaction import Transaction
 from plugins import run_hook
-import bitcoin
+import parkbyte
 import coinchooser
 from synchronizer import Synchronizer
 from verifier import SPV
@@ -617,7 +617,7 @@ class Abstract_Wallet(PrintError):
         received, sent = self.get_addr_io(address)
         return sum([v for height, v, is_cb in received.values()])
 
-    # return the balance of a bitcoin address: confirmed and matured, unconfirmed, unmatured
+    # return the balance of a parkbyte address: confirmed and matured, unconfirmed, unmatured
     def get_addr_balance(self, address):
         received, sent = self.get_addr_io(address)
         c = u = x = 0
@@ -908,11 +908,11 @@ class Abstract_Wallet(PrintError):
     def fee_per_kb(self, config):
         b = config.get('dynamic_fees')
         f = config.get('fee_factor', 50)
-        F = config.get('fee_per_kb', bitcoin.RECOMMENDED_FEE)
-        return min(bitcoin.RECOMMENDED_FEE, self.network.fee*(50 + f)/100) if b and self.network and self.network.fee else F
+        F = config.get('fee_per_kb', parkbyte.RECOMMENDED_FEE)
+        return min(parkbyte.RECOMMENDED_FEE, self.network.fee*(50 + f)/100) if b and self.network and self.network.fee else F
 
     def relayfee(self):
-        RELAY_FEE = 5000
+        RELAY_FEE = 1000
         MAX_RELAY_FEE = 50000
         f = self.network.relay_fee if self.network and self.network.relay_fee else RELAY_FEE
         return min(f, MAX_RELAY_FEE)
@@ -926,7 +926,7 @@ class Abstract_Wallet(PrintError):
         for type, data, value in outputs:
             if type == TYPE_ADDRESS:
                 if not is_address(data):
-                    raise BaseException("Invalid bitcoin address:" + data)
+                    raise BaseException("Invalid ParkByte address:" + data)
 
         # Avoid index-out-of-range with coins[0] below
         if not coins:
@@ -1206,7 +1206,7 @@ class Abstract_Wallet(PrintError):
 
     def get_private_key_from_xpubkey(self, x_pubkey, password):
         if x_pubkey[0:2] in ['02','03','04']:
-            addr = bitcoin.public_key_to_bc_address(x_pubkey.decode('hex'))
+            addr = parkbyte.public_key_to_bc_address(x_pubkey.decode('hex'))
             if self.is_mine(addr):
                 return self.get_private_key(addr, password)[0]
         elif x_pubkey[0:2] == 'ff':
@@ -1234,7 +1234,7 @@ class Abstract_Wallet(PrintError):
 
     def can_sign_xpubkey(self, x_pubkey):
         if x_pubkey[0:2] in ['02','03','04']:
-            addr = bitcoin.public_key_to_bc_address(x_pubkey.decode('hex'))
+            addr = parkbyte.public_key_to_bc_address(x_pubkey.decode('hex'))
             return self.is_mine(addr)
         elif x_pubkey[0:2] == 'ff':
             if not isinstance(self, BIP32_Wallet): return False
@@ -1275,7 +1275,7 @@ class Abstract_Wallet(PrintError):
         if not r:
             return
         out = copy.copy(r)
-        out['URI'] = 'bitcoin:' + addr + '?amount=' + util.format_satoshis(out.get('amount'))
+        out['URI'] = 'parkbyte:' + addr + '?amount=' + util.format_satoshis(out.get('amount'))
         out['status'] = self.get_request_status(addr)
         # check if bip70 file exists
         rdir = config.get('requests_dir')
@@ -1618,7 +1618,7 @@ class BIP32_Simple_Wallet(BIP32_Wallet):
     wallet_type = 'xpub'
 
     def create_xprv_wallet(self, xprv, password):
-        xpub = bitcoin.xpub_from_xprv(xprv)
+        xpub = parkbyte.xpub_from_xprv(xprv)
         account = BIP32_Account({'xpub':xpub})
         self.storage.put('seed_version', self.seed_version)
         self.add_master_private_key(self.root_name, xprv, password)
@@ -2011,12 +2011,12 @@ class Wallet(object):
     @staticmethod
     def is_address(text):
         parts = text.split()
-        return bool(parts) and all(bitcoin.is_address(x) for x in parts)
+        return bool(parts) and all(parkbyte.is_address(x) for x in parts)
 
     @staticmethod
     def is_private_key(text):
         parts = text.split()
-        return bool(parts) and all(bitcoin.is_private_key(x) for x in parts)
+        return bool(parts) and all(parkbyte.is_private_key(x) for x in parts)
 
     @staticmethod
     def is_any(text):
@@ -2092,7 +2092,7 @@ class Wallet(object):
         for i, text in enumerate(key_list):
             name = "x%d/" % (i+1)
             if Wallet.is_xprv(text):
-                xpub = bitcoin.xpub_from_xprv(text)
+                xpub = parkbyte.xpub_from_xprv(text)
                 wallet.add_master_public_key(name, xpub)
                 wallet.add_master_private_key(name, text, password)
             elif Wallet.is_xpub(text):

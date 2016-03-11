@@ -3,7 +3,7 @@ _ = lambda x:x
 #from i18n import _
 from electrum.wallet import WalletStorage, Wallet
 from electrum.util import format_satoshis, set_verbosity, StoreDict
-from electrum.bitcoin import is_valid, COIN, TYPE_ADDRESS
+from electrum.parkbyte import is_valid, COIN, TYPE_ADDRESS
 from electrum.network import filter_protocol
 import sys, getpass, datetime
 
@@ -161,7 +161,7 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_valid(self.str_recipient):
-            print(_('Invalid Bitcoin address'))
+            print(_('Invalid ParkByte address'))
             return
         try:
             amount = int(Decimal(self.str_amount) * COIN)

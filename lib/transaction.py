@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2011 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -28,15 +28,15 @@
 # Note: The deserialization code originally comes from ABE.
 
 
-import bitcoin
-from bitcoin import *
+import parkbyte
+from parkbyte import *
 from util import print_error, profiler
 import time
 import sys
 import struct
 
 #
-# Workalike python implementation of Bitcoin's CDataStream class.
+# Workalike python implementation of ParkByte's CDataStream class.
 #
 import struct
 import StringIO
@@ -68,7 +68,7 @@ class BCDataStream(object):
         # 0 to 252 :  1-byte-length followed by bytes (if any)
         # 253 to 65,535 : byte'253' 2-byte-length followed by bytes
         # 65,536 to 4,294,967,295 : byte '254' 4-byte-length followed by bytes
-        # ... and the Bitcoin client is coded to understand:
+        # ... and the ParkByte client is coded to understand:
         # greater than 4,294,967,295 : byte '255' 8-byte-length followed by bytes of string
         # ... but I don't think it actually handles any strings that big.
         if self.input is None:
@@ -190,11 +190,11 @@ class Enumeration:
         return self.reverseLookup[value]
 
 
-# This function comes from bitcointools, bct-LICENSE.txt.
+# This function comes from parkbytetools, bct-LICENSE.txt.
 def long_hex(bytes):
     return bytes.encode('hex_codec')
 
-# This function comes from bitcointools, bct-LICENSE.txt.
+# This function comes from parkbytetools, bct-LICENSE.txt.
 def short_hex(bytes):
     t = bytes.encode('hex_codec')
     if len(t) < 11:
@@ -390,7 +390,7 @@ def parse_scriptSig(d, bytes):
     d['x_pubkeys'] = x_pubkeys
     d['pubkeys'] = pubkeys
     d['redeemScript'] = redeemScript
-    d['address'] = hash_160_to_bc_address(hash_160(redeemScript.decode('hex')), 5)
+    d['address'] = hash_160_to_bc_address(hash_160(redeemScript.decode('hex')), 28)
 
 
 
@@ -404,7 +404,7 @@ def get_address_from_output_script(bytes):
     if match_decoded(decoded, match):
         return TYPE_PUBKEY, decoded[0][1].encode('hex')
 
-    # Pay-by-Bitcoin-address TxOuts look like:
+    # Pay-by-ParkByte-address TxOuts look like:
     # DUP HASH160 20 BYTES:... EQUALVERIFY CHECKSIG
     match = [ opcodes.OP_DUP, opcodes.OP_HASH160, opcodes.OP_PUSHDATA4, opcodes.OP_EQUALVERIFY, opcodes.OP_CHECKSIG ]
     if match_decoded(decoded, match):
@@ -413,7 +413,7 @@ def get_address_from_output_script(bytes):
     # p2sh
     match = [ opcodes.OP_HASH160, opcodes.OP_PUSHDATA4, opcodes.OP_EQUAL ]
     if match_decoded(decoded, match):
-        return TYPE_ADDRESS, hash_160_to_bc_address(decoded[1][1],5)
+        return TYPE_ADDRESS, hash_160_to_bc_address(decoded[1][1],28)
 
     return TYPE_SCRIPT, bytes
 
@@ -459,6 +459,7 @@ def deserialize(raw):
     d = {}
     start = vds.read_cursor
     d['version'] = vds.read_int32()
+    d['nTime'] = vds.read_uint32()
     n_vin = vds.read_compact_size()
     d['inputs'] = list(parse_input(vds) for i in xrange(n_vin))
     n_vout = vds.read_compact_size()
@@ -547,11 +548,15 @@ class Transaction:
         return d
 
     @classmethod
-    def from_io(klass, inputs, outputs, locktime=0):
+    def from_io(klass, inputs, outputs, locktime=0, nTime=0):
         self = klass(None)
         self._inputs = inputs
         self._outputs = outputs
         self.locktime = locktime
+        if nTime == 0:
+            self.time = int(time.time()) # bitspill
+        else:
+            self.time = nTime
         return self
 
     @classmethod
@@ -601,11 +606,11 @@ class Transaction:
             return addr.encode('hex')
         elif output_type == TYPE_ADDRESS:
             addrtype, hash_160 = bc_address_to_hash_160(addr)
-            if addrtype == 0:
+            if addrtype == 55:
                 script = '76a9'                                      # op_dup, op_hash_160
                 script += push_script(hash_160.encode('hex'))
                 script += '88ac'                                     # op_equalverify, op_checksig
-            elif addrtype == 5:
+            elif addrtype == 28:
                 script = 'a9'                                        # op_hash_160
                 script += push_script(hash_160.encode('hex'))
                 script += '87'                                       # op_equal
@@ -682,7 +687,9 @@ class Transaction:
     def serialize(self, for_sig=None):
         inputs = self.inputs()
         outputs = self.outputs()
+        time = self.time # bitspill
         s  = int_to_hex(1,4)                                         # version
+        s += int_to_hex(time,4) # bitspill                         # nTime
         s += var_int( len(inputs) )                                  # number of inputs
         for i, txin in enumerate(inputs):
             s += self.serialize_input(txin, i, for_sig)
@@ -797,7 +804,7 @@ class Transaction:
                     for_sig = Hash(self.tx_for_sig(i).decode('hex'))
                     pkey = regenerate_key(sec)
                     secexp = pkey.secret
-                    private_key = bitcoin.MySigningKey.from_secret_exponent( secexp, curve = SECP256k1 )
+                    private_key = parkbyte.MySigningKey.from_secret_exponent( secexp, curve = SECP256k1 )
                     public_key = private_key.get_verifying_key()
                     sig = private_key.sign_digest_deterministic( for_sig, hashfunc=hashlib.sha256, sigencode = ecdsa.util.sigencode_der )
                     assert public_key.verify_digest( sig, for_sig, sigdecode = ecdsa.util.sigdecode_der)
@@ -839,13 +846,12 @@ class Transaction:
 
 
     def requires_fee(self, wallet):
-        # see https://en.bitcoin.it/wiki/Transaction_fees
         #
         # size must be smaller than 1 kbyte for free tx
         size = len(self.serialize(-1))/2
         if size >= 10000:
             return True
-        # all outputs must be 0.01 BTC or larger for free tx
+        # all outputs must be 0.01 PKB or larger for free tx
         for addr, value in self.get_outputs():
             if value < 1000000:
                 return True

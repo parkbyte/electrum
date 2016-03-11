@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -29,7 +29,7 @@ from qrtextedit import ScanQRTextEdit
 
 import re
 from decimal import Decimal
-from electrum import bitcoin
+from electrum import parkbyte
 
 import util
 
@@ -84,11 +84,11 @@ class PayToEdit(ScanQRTextEdit):
         if n:
             script = str(n.group(1)).decode('hex')
             amount = self.parse_amount(y)
-            return bitcoin.TYPE_SCRIPT, script, amount
+            return parkbyte.TYPE_SCRIPT, script, amount
         else:
             address = self.parse_address(x)
             amount = self.parse_amount(y)
-            return bitcoin.TYPE_ADDRESS, address, amount
+            return parkbyte.TYPE_ADDRESS, address, amount
 
     def parse_amount(self, x):
         p = pow(10, self.amount_edit.decimal_point())
@@ -98,7 +98,7 @@ class PayToEdit(ScanQRTextEdit):
         r = line.strip()
         m = re.match('^'+RE_ALIAS+'$', r)
         address = str(m.group(2) if m else r)
-        assert bitcoin.is_address(address)
+        assert parkbyte.is_address(address)
         return address
 
     def check_text(self):
@@ -112,7 +112,7 @@ class PayToEdit(ScanQRTextEdit):
         self.payto_address = None
         if len(lines) == 1:
             data = lines[0]
-            if data.startswith("bitcoin:"):
+            if data.startswith("parkbyte:"):
                 self.scan_f(data)
                 return
             try:
@@ -156,7 +156,7 @@ class PayToEdit(ScanQRTextEdit):
                 amount = self.amount_edit.get_amount()
             except:
                 amount = None
-            self.outputs = [(bitcoin.TYPE_ADDRESS, self.payto_address, amount)]
+            self.outputs = [(parkbyte.TYPE_ADDRESS, self.payto_address, amount)]
 
         return self.outputs[:]
 
@@ -245,7 +245,7 @@ class PayToEdit(ScanQRTextEdit):
 
     def qr_input(self):
         data = super(PayToEdit,self).qr_input()
-        if data.startswith("bitcoin:"):
+        if data.startswith("parkbyte:"):
             self.scan_f(data)
             # TODO: update fee
 

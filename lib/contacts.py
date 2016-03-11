@@ -1,4 +1,4 @@
-# Electrum - Lightweight Bitcoin Client
+# Electrum - Lightweight ParkByte Client
 # Copyright (c) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -25,7 +25,7 @@ import sys
 import re
 import dns
 
-import bitcoin
+import parkbyte
 import dnssec
 from util import StoreDict, print_error
 from i18n import _
@@ -37,7 +37,7 @@ class Contacts(StoreDict):
         StoreDict.__init__(self, config, 'contacts')
 
     def resolve(self, k):
-        if bitcoin.is_address(k):
+        if parkbyte.is_address(k):
             return {
                 'address': k,
                 'type': 'address'
@@ -58,7 +58,7 @@ class Contacts(StoreDict):
                 'type': 'openalias',
                 'validated': validated
             }
-        raise Exception("Invalid Bitcoin address or alias", k)
+        raise Exception("Invalid ParkByte address or alias", k)
 
     def resolve_openalias(self, url):
         # support email-style addresses, per the OA standard

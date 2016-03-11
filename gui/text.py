@@ -4,7 +4,7 @@ from decimal import Decimal
 
 from electrum.util import format_satoshis, set_verbosity
 from electrum.util import StoreDict
-from electrum.bitcoin import is_valid, COIN, TYPE_ADDRESS
+from electrum.parkbyte import is_valid, COIN, TYPE_ADDRESS
 from electrum import Wallet, WalletStorage
 
 _ = lambda x:x
@@ -309,7 +309,7 @@ class ElectrumGui:
 
     def do_send(self):
         if not is_valid(self.str_recipient):
-            self.show_message(_('Invalid Bitcoin address'))
+            self.show_message(_('Invalid ParkByte address'))
             return
         try:
             amount = int(Decimal(self.str_amount) * COIN)

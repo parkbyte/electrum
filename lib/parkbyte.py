@@ -37,12 +37,12 @@ import aes
 
 ################################## transactions
 
-RECOMMENDED_FEE = 50000
+RECOMMENDED_FEE = 100
 COINBASE_MATURITY = 100
 COIN = 100000000
 
 # supported types of transction outputs
-TYPE_ADDRESS = 0
+TYPE_ADDRESS = 55
 TYPE_PUBKEY  = 1
 TYPE_SCRIPT  = 2
 
@@ -121,7 +121,6 @@ def int_to_hex(i, length=1):
 
 
 def var_int(i):
-    # https://en.bitcoin.it/wiki/Protocol_specification#Variable_length_integer
     if i<0xfd:
         return int_to_hex(i)
     elif i<=0xffff:
@@ -215,7 +214,7 @@ def public_key_to_bc_address(public_key):
     h160 = hash_160(public_key)
     return hash_160_to_bc_address(h160)
 
-def hash_160_to_bc_address(h160, addrtype = 0):
+def hash_160_to_bc_address(h160, addrtype = 55):
     vh160 = chr(addrtype) + h160
     h = Hash(vh160)
     addr = vh160 + h[0:4]
@@ -303,12 +302,12 @@ def PrivKeyToSecret(privkey):
     return privkey[9:9+32]
 
 
-def SecretToASecret(secret, compressed=False, addrtype=0):
+def SecretToASecret(secret, compressed=False, addrtype=55):
     vchIn = chr((addrtype+128)&255) + secret
     if compressed: vchIn += '\01'
     return EncodeBase58Check(vchIn)
 
-def ASecretToSecret(key, addrtype=0):
+def ASecretToSecret(key, addrtype=55):
     vch = DecodeBase58Check(key)
     if vch and vch[0] == chr((addrtype+128)&255):
         return vch[1:]
@@ -365,7 +364,7 @@ def is_address(addr):
         addrtype, h = bc_address_to_hash_160(addr)
     except Exception:
         return False
-    if addrtype not in [0, 5]:
+    if addrtype not in [55, 28]:
         return False
     return addr == hash_160_to_bc_address(h, addrtype)
 
@@ -678,7 +677,7 @@ BITCOIN_HEADERS = (BITCOIN_HEADER_PUB, BITCOIN_HEADER_PRIV)
 TESTNET_HEADERS = (TESTNET_HEADER_PUB, TESTNET_HEADER_PRIV)
 
 def _get_headers(testnet):
-    """Returns the correct headers for either testnet or bitcoin, in the form
+    """Returns the correct headers for either testnet or parkbyte, in the form
     of a 2-tuple, like (public, private)."""
     if testnet:
         return TESTNET_HEADERS
@@ -692,7 +691,7 @@ def deserialize_xkey(xkey):
     assert len(xkey) == 78
 
     xkey_header = xkey[0:4].encode('hex')
-    # Determine if the key is a bitcoin key or a testnet key.
+    # Determine if the key is a parkbyte key or a testnet key.
     if xkey_header in TESTNET_HEADERS:
         head = TESTNET_HEADER_PRIV
     elif xkey_header in BITCOIN_HEADERS:

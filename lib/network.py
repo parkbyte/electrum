@@ -1,4 +1,4 @@
-# Electrum - Lightweight Bitcoin Client
+# Electrum - Lightweight ParkByte Client
 # Copyright (c) 2011-2016 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -37,29 +37,18 @@ import socket
 import json
 
 import util
-from bitcoin import *
+from parkbyte import *
 from interface import Connection, Interface
 from blockchain import Blockchain
 from version import ELECTRUM_VERSION, PROTOCOL_VERSION
 
-DEFAULT_PORTS = {'t':'50001', 's':'50002', 'h':'8081', 'g':'8082'}
+DEFAULT_PORTS = {'t':'5035', 's':'50002', 'h':'8081', 'g':'8082'}
 
 DEFAULT_SERVERS = {
-    'erbium1.sytes.net':{'t':'50001', 's':'50002'},
-    'ecdsa.net':{'t':'50001', 's':'110'},
-    'electrum0.electricnewyear.net':{'t':'50001', 's':'50002'},
-    'VPS.hsmiths.com':{'t':'50001', 's':'50002'},
-    'ELECTRUM.jdubya.info':{'t':'50001', 's':'50002'},
-    'electrum.no-ip.org':{'t':'50001', 's':'50002', 'g':'443'},
-    'us.electrum.be':DEFAULT_PORTS,
-    'bitcoins.sk':{'t':'50001', 's':'50002'},
-    'electrum.petrkr.net':{'t':'50001', 's':'50002'},
-    'electrum.dragonzone.net':DEFAULT_PORTS,
-    'Electrum.hsmiths.com':{'t':'8080', 's':'995'},
-    'electrum3.hachre.de':{'t':'50001', 's':'50002'},
-    'elec.luggs.co':{'t':'80', 's':'443'},
-    'btc.smsys.me':{'t':'110', 's':'995'},
-    'electrum.online':{'t':'50001', 's':'50002'},
+        'electrum.uk1.parkbyte.com':DEFAULT_PORTS,
+        'electrum.eu1.parkbyte.com':DEFAULT_PORTS,
+        'electrum.eu2.parkbyte.com':DEFAULT_PORTS,
+        'electrum.canada.parkbyte.com':DEFAULT_PORTS
 }
 
 NODES_RETRY_INTERVAL = 60
@@ -726,7 +715,7 @@ class Network(util.DaemonThread):
                         self.notify('updated')
                     else:
                         interface.print_error("header didn't connect, dismissing interface")
-                        interface.stop()
+                        # interface.stop()
                 else:
                     self.request_header(interface, data, next_height)
 

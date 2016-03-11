@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2011 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -37,8 +37,8 @@ from decimal import Decimal
 
 import util
 from util import print_msg, format_satoshis, print_stderr
-import bitcoin
-from bitcoin import is_address, hash_160_to_bc_address, hash_160, COIN, TYPE_ADDRESS
+import parkbyte
+from parkbyte import is_address, hash_160_to_bc_address, hash_160, COIN, TYPE_ADDRESS
 from transaction import Transaction
 import paymentrequest
 from paymentrequest import PR_PAID, PR_UNPAID, PR_UNKNOWN, PR_EXPIRED
@@ -114,8 +114,8 @@ class Commands:
     @command('wn')
     def restore(self, text):
         """Restore a wallet from text. Text can be a seed phrase, a master
-        public key, a master private key, a list of bitcoin addresses
-        or bitcoin private keys. If you want to be prompted for your
+        public key, a master private key, a list of parkbyte addresses
+        or parkbyte private keys. If you want to be prompted for your
         seed, type '?' or ':' (concealed) """
         raise BaseException('Not a JSON-RPC command')
 
@@ -194,7 +194,7 @@ class Commands:
 
     @command('wp')
     def createrawtx(self, inputs, outputs, unsigned=False):
-        """Create a transaction from json inputs. The syntax is similar to bitcoind."""
+        """Create a transaction from json inputs. The syntax is similar to parkbyted."""
         coins = self.wallet.get_spendable_coins(exclude_frozen = False)
         tx_inputs = []
         for i in inputs:
@@ -218,7 +218,7 @@ class Commands:
         """Sign a transaction. The wallet keys will be used unless a private key is provided."""
         t = Transaction(tx)
         if privkey:
-            pubkey = bitcoin.public_key_from_private_key(privkey)
+            pubkey = parkbyte.public_key_from_private_key(privkey)
             t.sign({pubkey:privkey})
         else:
             self.wallet.sign_transaction(t, self._password)
@@ -240,7 +240,7 @@ class Commands:
         """Create multisig address"""
         assert isinstance(pubkeys, list), (type(num), type(pubkeys))
         redeem_script = Transaction.multisig_script(pubkeys, num)
-        address = hash_160_to_bc_address(hash_160(redeem_script.decode('hex')), 5)
+        address = hash_160_to_bc_address(hash_160(redeem_script.decode('hex')), 28)
         return {'address':address, 'redeemScript':redeem_script}
 
     @command('w')
@@ -391,7 +391,7 @@ class Commands:
     def verifymessage(self, address, signature, message):
         """Verify a signature."""
         sig = base64.b64decode(signature)
-        return bitcoin.verify_message(address, sig, message)
+        return parkbyte.verify_message(address, sig, message)
 
     def _mktx(self, outputs, fee, change_addr, domain, nocheck, unsigned):
         self.nocheck = nocheck
@@ -454,7 +454,7 @@ class Commands:
 
     @command('w')
     def setlabel(self, key, label):
-        """Assign a label to an item. Item may be a bitcoin address or a
+        """Assign a label to an item. Item may be a parkbyte address or a
         transaction ID"""
         self.wallet.set_label(key, label)
 
@@ -515,7 +515,7 @@ class Commands:
     @command('')
     def encrypt(self, pubkey, message):
         """Encrypt a message with a public key. Use quotes if the message contains whitespaces."""
-        return bitcoin.encrypt_message(message, pubkey)
+        return parkbyte.encrypt_message(message, pubkey)
 
     @command('wp')
     def decrypt(self, pubkey, encrypted):
@@ -529,7 +529,7 @@ class Commands:
             PR_PAID: 'Paid',
             PR_EXPIRED: 'Expired',
         }
-        out['amount (BTC)'] = format_satoshis(out.get('amount'))
+        out['amount (PKB)'] = format_satoshis(out.get('amount'))
         out['status'] = pr_str[out.get('status', PR_UNKNOWN)]
         return out
 
@@ -621,8 +621,8 @@ class Commands:
 
 param_descriptions = {
     'privkey': 'Private key. Type \'?\' to get a prompt.',
-    'destination': 'Bitcoin address, contact or alias',
-    'address': 'Bitcoin address',
+    'destination': 'ParkByte address, contact or alias',
+    'address': 'ParkByte address',
     'seed': 'Seed phrase',
     'txid': 'Transaction ID',
     'pos': 'Position',
@@ -632,8 +632,8 @@ param_descriptions = {
     'pubkey': 'Public key',
     'message': 'Clear text message. Use quotes if it contains spaces.',
     'encrypted': 'Encrypted message',
-    'amount': 'Amount to be sent (in BTC). Type \'!\' to send the maximum available.',
-    'requested_amount': 'Requested amount (in BTC).',
+    'amount': 'Amount to be sent (in PKB). Type \'!\' to send the maximum available.',
+    'requested_amount': 'Requested amount (in PKB).',
     'outputs': 'list of ["address", amount]',
 }
 
@@ -647,7 +647,7 @@ command_options = {
     'show_balance':("-b", "--balance",     "Show the balances of listed addresses"),
     'show_labels': ("-l", "--labels",      "Show the labels of listed addresses"),
     'nocheck':     (None, "--nocheck",     "Do not verify aliases"),
-    'tx_fee':      ("-f", "--fee",         "Transaction fee (in BTC)"),
+    'tx_fee':      ("-f", "--fee",         "Transaction fee (in PKB)"),
     'from_addr':   ("-F", "--from",        "Source address. If it isn't in the wallet, it will ask for the private key unless supplied in the format public_key:private_key. It's not saved in the wallet."),
     'change_addr': ("-c", "--change",      "Change address. Default is a spare address, or the source address if it's not in the wallet"),
     'nbits':       (None, "--nbits",       "Number of bits of entropy"),
@@ -688,10 +688,10 @@ config_variables = {
         'requests_dir': 'directory where a bip70 file will be written.',
         'ssl_privkey': 'Path to your SSL private key, needed to sign the request.',
         'ssl_chain': 'Chain of SSL certificates, needed for signed requests. Put your certificate at the top and the root CA at the end',
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of bitcoin: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of parkbyte: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
     },
     'listrequests':{
-        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of bitcoin: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
+        'url_rewrite': 'Parameters passed to str.replace(), in order to create the r= part of parkbyte: URIs. Example: \"(\'file:///var/www/\',\'https://electrum.org/\')\"',
     }
 }
 
@@ -733,7 +733,7 @@ def get_parser():
     parent_parser = argparse.ArgumentParser('parent', add_help=False)
     group = parent_parser.add_argument_group('global options')
     group.add_argument("-v", "--verbose", action="store_true", dest="verbose", default=False, help="Show debugging information")
-    group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrum_data' directory")
+    group.add_argument("-P", "--portable", action="store_true", dest="portable", default=False, help="Use local 'electrum_parkbyte_data' directory")
     group.add_argument("-w", "--wallet", dest="wallet_path", help="wallet path")
     # create main parser
     parser = argparse.ArgumentParser(
@@ -742,7 +742,7 @@ def get_parser():
     subparsers = parser.add_subparsers(dest='cmd', metavar='<command>')
     # gui
     parser_gui = subparsers.add_parser('gui', parents=[parent_parser], description="Run Electrum's Graphical User Interface.", help="Run GUI (default)")
-    parser_gui.add_argument("url", nargs='?', default=None, help="bitcoin URI (or bip70 file)")
+    parser_gui.add_argument("url", nargs='?', default=None, help="parkbyte URI (or bip70 file)")
     #parser_gui.set_defaults(func=run_gui)
     parser_gui.add_argument("-g", "--gui", dest="gui", help="select graphical user interface", choices=['qt', 'kivy', 'text', 'stdio'])
     parser_gui.add_argument("-o", "--offline", action="store_true", dest="offline", default=False, help="Run offline")

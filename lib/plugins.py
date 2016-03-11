@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2015 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -426,9 +426,9 @@ class DeviceMgr(ThreadJob, PrintError):
         # or it is not pairable
         raise DeviceUnpairableError(
             _('Electrum cannot pair with your %s.\n\n'
-              'Before you request bitcoins to be sent to addresses in this '
+              'Before you request parkbytes to be sent to addresses in this '
               'wallet, ensure you can pair with your device, or that you have '
-              'its seed (and passphrase, if any).  Otherwise all bitcoins you '
+              'its seed (and passphrase, if any).  Otherwise all parkbytes you '
               'receive will be unspendable.') % plugin.device)
 
     def unpaired_device_infos(self, handler, plugin, devices=None):

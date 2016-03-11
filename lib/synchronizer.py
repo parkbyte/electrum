@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2014 Thomas Voegtlin
 #
 # Permission is hereby granted, free of charge, to any person
@@ -26,7 +26,7 @@
 
 from threading import Lock
 
-from bitcoin import Hash, hash_encode
+from parkbyte import Hash, hash_encode
 from transaction import Transaction
 from util import print_error, print_msg, ThreadJob
 

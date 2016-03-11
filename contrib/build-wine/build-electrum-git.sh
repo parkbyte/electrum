@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # You probably need to update only this link
-ELECTRUM_GIT_URL=git://github.com/spesmilo/electrum.git
+ELECTRUM_GIT_URL=git://github.com/parkbyte/electrum.git
 BRANCH=master
 NAME_ROOT=electrum
 
@@ -33,14 +33,14 @@ else
 fi
 
 cd electrum-git
-VERSION=`git describe --tags`
+VERSION="2.6.2-PKB"
 echo "Last commit: $VERSION"
 
 cd ..
 
 rm -rf $WINEPREFIX/drive_c/electrum
 cp -r electrum-git $WINEPREFIX/drive_c/electrum
-cp electrum-git/LICENCE .
+
 
 # add python packages (built with make_packages)
 cp -r ../../../packages $WINEPREFIX/drive_c/electrum/

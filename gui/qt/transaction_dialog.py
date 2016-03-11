@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Electrum - lightweight Bitcoin client
+# Electrum - lightweight ParkByte client
 # Copyright (C) 2012 thomasv@gitorious
 #
 # Permission is hereby granted, free of charge, to any person
@@ -33,7 +33,7 @@ from PyQt4.QtCore import *
 import PyQt4.QtCore as QtCore
 
 from electrum import transaction
-from electrum.bitcoin import base_encode
+from electrum.parkbyte import base_encode
 from electrum.i18n import _
 from electrum.plugins import run_hook
 
