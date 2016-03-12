@@ -5,8 +5,6 @@ Electrum ParkByte - Lightweight ParkByte client
 
 On first launch Electrum ParkByte will be unable to connect the electrum servers until it has downloaded the blockchain headers (Currently 42MB).
 
-Currently, none of the servers have SSL enabled, please uncheck "Use SSL" in Tools > Network until this has been enabled.
-
 ParkByte is a Proof-Of-Stake Coin, currently Electrum ParkByte is unable to spend staked coins.
 
 
